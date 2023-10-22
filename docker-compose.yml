@@ -1,0 +1,107 @@
+version: '3.5'
+
+networks:
+    default:
+        name: cabinet
+
+services:
+
+    web:
+        image: nginx:1.10
+        volumes:
+            - ./contrib/nginx/vhost.conf:/etc/nginx/conf.d/default.conf
+            - ./:/var/www
+            - /var/cache/nginx
+        depends_on:
+            - app
+        ports:
+            - "8080:80"
+        dns:
+            - 8.8.8.8
+        networks:
+            - default
+
+    app:
+        build:
+            context: .
+            target: dev
+        image: cabinet:latest
+        volumes: &volumes
+            - ./app:/var/www/app:cached
+            - ./composer.json:/var/www/composer.json:cached
+            - ./composer.lock:/var/www/composer.lock:cached
+            - ./config:/var/www/config:cached
+            - ./database:/var/www/database:cached
+            - ./public:/var/www/public:cached
+            - ./resources:/var/www/resources:cached
+            - ./routes:/var/www/routes:cached
+            - ./storage/app:/var/www/storage/app:cached
+            - ./tests:/var/www/tests:cached
+        depends_on:
+            - db
+            - redis
+        env_file:
+            - .env
+        environment: &environment
+            APP_DEBUG: "true"
+            APP_ENV: local
+            APP_KEY: "base64:M7vkiJYFhBOjbY8qXevZODtnbEi/sA0EBL+VEjJqhUc="
+            APP_NAME: "Task Harmony"
+            APP_URL: http://localhost:8080
+            BROADCAST_DRIVER: redis
+            CACHE_DRIVER: redis
+            DB_CONNECTION: mysql
+            DB_HOST: db
+            DB_PORT: "3306"
+            LOG_CHANNEL: stderr
+            LOG_LEVEL: debug
+            MAIL_FROM_ADDRESS: no-reply@wpu.sh
+            MAIL_FROM_NAME: Support
+            QUEUE_CONNECTION: redis
+            REDIS_HOST: redis
+            SESSION_DRIVER: file
+            SESSION_LIFETIME: 120
+        dns:
+            - 8.8.8.8
+        networks:
+            - default
+
+    worker:
+        image: cabinet:latest
+        command: php artisan queue:listen
+        volumes: *volumes
+        depends_on:
+            - db
+            - redis
+        env_file:
+            - .env
+        environment: *environment
+        networks:
+            - default
+
+    db:
+        build:
+            context: contrib/mysql
+            dockerfile: Dockerfile
+        ports:
+            - "3306:3306"
+        environment:
+            - "MYSQL_ALLOW_EMPTY_PASSWORD=true"
+        dns:
+            - 8.8.8.8
+        networks:
+            - default
+
+    redis:
+        image: redis:5
+        networks:
+            - default
+
+    echo:
+        image: oanhnn/laravel-echo-server
+        ports:
+            - "6001:6001"
+        depends_on:
+            - redis
+        volumes:
+            - ./laravel-echo-server.json:/app/laravel-echo-server.json
