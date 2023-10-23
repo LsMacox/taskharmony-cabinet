@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -26,7 +29,7 @@ class AuthController extends Controller
         $user = new User([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
         ]);
 
         if ($user->save()) {
@@ -35,7 +38,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Successfully created user!',
-                'abilities' => $this->getUserAbilities($user),
+                'userAbilityRules' => $this->getUserAbilities($user),
                 'accessToken' => $token,
             ], 201);
         } else {
@@ -71,7 +74,7 @@ class AuthController extends Controller
 
         return response()->json([
             'accessToken' => $token,
-            'abilities' => $this->getUserAbilities($user),
+            'userAbilityRules' => $this->getUserAbilities($user),
             'token_type' => 'Bearer',
         ]);
     }
@@ -109,7 +112,7 @@ class AuthController extends Controller
      */
     public function userAbilities(Request $request): JsonResponse
     {
-        return response()->json(['abilities' => $this->getUserAbilities($request->user())]);
+        return response()->json(['userAbilityRules' => $this->getUserAbilities($request->user())]);
     }
 
     /**
@@ -125,7 +128,10 @@ class AuthController extends Controller
             $policyMethods = get_class_methods(new $policy);
 
             foreach ($policyMethods as $method) {
-                $abilities["{$method}_{$model}"] = $user->can($method, $model);
+                $abilities[] = [
+                    'action' => $method,
+                    'subject' => $model,
+                ];
             }
         }
 

@@ -2,16 +2,14 @@
 
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
 use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function archive(Authenticatable $auth): bool
     {
-        return true;
+        return $auth->can('archive.User');
     }
 }
