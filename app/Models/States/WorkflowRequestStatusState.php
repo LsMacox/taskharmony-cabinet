@@ -21,7 +21,6 @@ abstract class WorkflowRequestStatusState extends State
         return parent::config()
             ->default(InProgress::class)
             ->allowTransition(InProgress::class, Approved::class)
-            ->allowTransition(InProgress::class, Rejected::class)
-            ;
+            ->allowTransition(InProgress::class, Rejected::class);
     }
 }

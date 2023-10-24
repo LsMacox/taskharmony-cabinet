@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users_workflows', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('workflow_id');
-            $table->timestamps();
-        });
+        Schema::create(
+            'users_workflows', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id');
+                $table->foreignId('workflow_id');
+                $table->timestamps();
+            }
+        );
     }
 
     /**

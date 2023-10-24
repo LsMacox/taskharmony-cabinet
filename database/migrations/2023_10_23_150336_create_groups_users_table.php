@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('groups_users', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('group_id');
-            $table->timestamps();
-        });
+        Schema::create(
+            'groups_users', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id');
+                $table->foreignId('group_id');
+                $table->timestamps();
+            }
+        );
     }
 
     /**

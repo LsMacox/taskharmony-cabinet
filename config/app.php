@@ -155,7 +155,8 @@ return [
     |
     */
 
-    'providers' => ServiceProvider::defaultProviders()->merge([
+    'providers' => ServiceProvider::defaultProviders()->merge(
+        [
         /*
          * Package Service Providers...
          */
@@ -169,7 +170,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         \Spatie\Permission\PermissionServiceProvider::class,
-    ])->toArray(),
+        \eloquentFilter\ServiceProvider::class,
+        ]
+    )->toArray(),
 
     /*
     |--------------------------------------------------------------------------
@@ -182,8 +185,11 @@ return [
     |
     */
 
-    'aliases' => Facade::defaultAliases()->merge([
+    'aliases' => Facade::defaultAliases()->merge(
+        [
         // 'Example' => App\Facades\Example::class,
-    ])->toArray(),
+        'EloquentFilter' => eloquentFilter\Facade\EloquentFilter::class,
+        ]
+    )->toArray(),
 
 ];

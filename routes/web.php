@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return 'Workflow builder';
-});
+Route::get(
+    '/', function () {
+        return 'Workflow builder';
+    }
+);
 

@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_group_permissions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('group_id');
-            $table->timestamps();
+        Schema::create(
+            'user_group_permissions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('group_id');
+                $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('group_id')->references('id')->on('groups')->cascadeOnDelete();
-        });
+                $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+                $table->foreign('group_id')->references('id')->on('groups')->cascadeOnDelete();
+            }
+        );
     }
 
     /**

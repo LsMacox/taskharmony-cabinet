@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('workflows', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->foreignId('group_id')->nullable();
-            $table->string('status'); // rejected, approved, returned
-            $table->json('approve_sequence')->nullable(); // [{group_id: 1}, {user_id: 2}]
-            $table->timestamps();
-        });
+        Schema::create(
+            'workflows', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->foreignId('group_id')->nullable();
+                $table->string('status'); // rejected, approved, returned
+                $table->json('approve_sequence')->nullable(); // [{group_id: 1}, {user_id: 2}]
+                $table->timestamps();
+            }
+        );
     }
 
     /**

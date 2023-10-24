@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('groups', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description');
-            $table->unsignedBigInteger('parent_id');
-            $table->boolean('is_department');
-            $table->timestamps();
-        });
+        Schema::create(
+            'groups', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->text('description');
+                $table->unsignedBigInteger('parent_id');
+                $table->boolean('is_department');
+                $table->timestamps();
+            }
+        );
     }
 
     /**
