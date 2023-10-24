@@ -16,9 +16,6 @@ class UserController extends Controller
         $this->authorizeResource(User::class);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): AnonymousResourceCollection
     {
         $users = User::filter()->paginate();
@@ -26,9 +23,6 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(UserRequest $request): UserResource
     {
         $user = User::create($request->validated());
@@ -36,17 +30,11 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(User $user): UserResource
     {
         return new UserResource($user);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UserRequest $request, User $user): UserResource
     {
         $user = $user->update($request->validated());
@@ -54,9 +42,6 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user): Response
     {
         $user->delete();

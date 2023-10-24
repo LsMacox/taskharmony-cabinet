@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -12,12 +11,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /**
-     * Create user
-     *
-     * @param  Request $request
-     * @return JsonResponse [string] message
-     */
     public function register(Request $request): JsonResponse
     {
         $request->validate(
@@ -45,35 +38,31 @@ class AuthController extends Controller
                 'message' => 'Successfully created user!',
                 'userAbilityRules' => $this->getUserAbilities($user),
                 'accessToken' => $token,
-                ], 201
+                ],
+                201
             );
         } else {
             return response()->json(['error' => 'Provide proper details']);
         }
     }
 
-    /**
-     * Login user and create token
-     *
-     * @param  Request $request
-     * @return JsonResponse
-     */
     public function login(Request $request): JsonResponse
     {
         $request->validate(
             [
             'email' => 'required|string|email',
             'password' => 'required|string',
-            'remember_me' => 'boolean'
+            'remember_me' => 'boolean',
             ]
         );
 
-        $credentials = request(['email','password']);
-        if(!Auth::attempt($credentials)) {
+        $credentials = request(['email', 'password']);
+        if (!Auth::attempt($credentials)) {
             return response()->json(
                 [
-                'message' => 'Unauthorized'
-                ], 401
+                'message' => 'Unauthorized',
+                ],
+                401
             );
         }
 
@@ -90,48 +79,27 @@ class AuthController extends Controller
         );
     }
 
-    /**
-     * Get the authenticated User
-     *
-     * @param  Request $request
-     * @return JsonResponse [json] user object
-     */
     public function user(Request $request): JsonResponse
     {
         return response()->json($request->user());
     }
 
-    /**
-     * Logout user (Revoke the token)
-     *
-     * @param  Request $request
-     * @return JsonResponse [string] message
-     */
     public function logout(Request $request): JsonResponse
     {
         $request->user()->tokens()->delete();
 
         return response()->json(
             [
-            'message' => 'Successfully logged out'
+            'message' => 'Successfully logged out',
             ]
         );
-
     }
 
-    /**
-     * @param  Request $request
-     * @return JsonResponse
-     */
     public function userAbilities(Request $request): JsonResponse
     {
         return response()->json(['userAbilityRules' => $this->getUserAbilities($request->user())]);
     }
 
-    /**
-     * @param  User $user
-     * @return array
-     */
     protected function getUserAbilities(User $user): array
     {
         $policies = Gate::policies();
@@ -141,10 +109,15 @@ class AuthController extends Controller
             $policyMethods = get_class_methods(new $policy);
 
             foreach ($policyMethods as $method) {
-                $abilities[] = [
-                    'action' => $method,
-                    'subject' => $model,
-                ];
+                $p_method = strtolower($method);
+                $p_model = ucfirst(strtolower($model));
+
+                if ($user->can($p_method . '.' . $p_model)) {
+                    $abilities[] = [
+                        'action' => $p_method,
+                        'subject' => $p_model,
+                    ];
+                }
             }
         }
 
