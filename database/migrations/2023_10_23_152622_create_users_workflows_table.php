@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create(
             'users_workflows', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('user_id');
-                $table->foreignId('workflow_id');
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('workflow_id');
                 $table->timestamps();
+
+                $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+                $table->foreign('workflow_id')->references('id')->on('workflows')->cascadeOnDelete();
             }
         );
     }

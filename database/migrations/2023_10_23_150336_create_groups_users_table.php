@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create(
             'groups_users', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('user_id');
-                $table->foreignId('group_id');
-                $table->timestamps();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('group_id');
+
+                $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+                $table->foreign('group_id')->references('id')->on('groups')->cascadeOnDelete();
             }
         );
     }

@@ -14,15 +14,13 @@ return new class extends Migration
         Schema::create(
             'workflow_requests', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('workflow_id');
+                $table->unsignedBigInteger('workflow_id');
                 $table->unsignedBigInteger('author_id');
                 $table->string('status');
                 $table->timestamps();
 
-                $table
-                    ->foreign('author_id')
-                    ->references('id')
-                    ->on('users');
+                $table->foreign('workflow_id')->references('id')->on('workflows')->cascadeOnDelete();
+                $table->foreign('author_id')->references('id')->on('users')->cascadeOnDelete();
             }
         );
     }

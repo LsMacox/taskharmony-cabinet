@@ -8,26 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\ModelStates\HasStates;
 
 class Workflow extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasStates;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'workflow_id',
-        'author_id',
+        'name',
+        'group_id',
+        'approve_sequence',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'status' => WorkflowStatusState::class,
     ];

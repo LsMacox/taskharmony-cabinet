@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,13 +12,8 @@ use Illuminate\Notifications\Notifiable;
 
 class Group extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Filterable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'description',
@@ -25,19 +21,14 @@ class Group extends Model
         'is_department',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [];
+    protected $hidden = ['parent_id'];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [];
+    private static array $whiteListFilter = [
+        'name',
+        'is_department',
+        'created_at',
+        'updated_at',
+    ];
 
     public function users(): BelongsToMany
     {

@@ -3,33 +3,43 @@
 namespace App\Models;
 
 use App\Models\States\WorkflowRequestStatusState;
+use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\ModelStates\HasStates;
 
 class WorkflowRequest extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Filterable, HasStates;
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'status' => WorkflowRequestStatusState::class,
     ];
 
+    protected $hidden = ['author_id'];
 
-    public function users(): BelongsToMany
+    private static array $whiteListFilter = [
+        'status',
+        'created_at',
+        'updated_at',
+    ];
+
+    public function scopeOnlyForAuth(Builder $query): Builder
     {
-        return $this->belongsToMany(User::class);
+        return $query->where('author_id', auth()->id());
     }
 
-    public function group(): BelongsTo
+    public function author(): BelongsTo
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function workflow(): BelongsTo
+    {
+        return $this->belongsTo(Workflow::class);
     }
 }
