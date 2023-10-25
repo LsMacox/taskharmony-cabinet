@@ -6,7 +6,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -15,17 +14,17 @@ class AuthController extends Controller
     {
         $request->validate(
             [
-            'name' => 'required|string',
-            'email' => 'required|string|unique:users',
-            'password' => 'required|string',
+                'name' => 'required|string',
+                'email' => 'required|string|unique:users',
+                'password' => 'required|string',
             ]
         );
 
         $user = new User(
             [
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
             ]
         );
 
@@ -35,9 +34,9 @@ class AuthController extends Controller
 
             return response()->json(
                 [
-                'message' => 'Successfully created user!',
-                'userAbilityRules' => $this->getUserAbilities($user),
-                'accessToken' => $token,
+                    'message' => 'Successfully created user!',
+                    'userAbilityRules' => $this->getUserAbilities($user),
+                    'accessToken' => $token,
                 ],
                 201
             );
@@ -50,9 +49,9 @@ class AuthController extends Controller
     {
         $request->validate(
             [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'remember_me' => 'boolean',
+                'email' => 'required|string|email',
+                'password' => 'required|string',
+                'remember_me' => 'boolean',
             ]
         );
 
@@ -60,7 +59,7 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials)) {
             return response()->json(
                 [
-                'message' => 'Unauthorized',
+                    'message' => 'Unauthorized',
                 ],
                 401
             );
@@ -72,9 +71,9 @@ class AuthController extends Controller
 
         return response()->json(
             [
-            'accessToken' => $token,
-            'userAbilityRules' => $this->getUserAbilities($user),
-            'token_type' => 'Bearer',
+                'accessToken' => $token,
+                'userAbilityRules' => $this->getUserAbilities($user),
+                'token_type' => 'Bearer',
             ]
         );
     }
@@ -90,7 +89,7 @@ class AuthController extends Controller
 
         return response()->json(
             [
-            'message' => 'Successfully logged out',
+                'message' => 'Successfully logged out',
             ]
         );
     }
@@ -102,23 +101,18 @@ class AuthController extends Controller
 
     protected function getUserAbilities(User $user): array
     {
-        $policies = Gate::policies();
         $abilities = [];
+        $role_permissions = $user->roles()->first()?->permissions->pluck('name')->toArray() ?? [];
+        $user_permissions = $user->permissions()->pluck('name')->toArray();
+        $all_permissions = array_unique(array_merge($role_permissions, $user_permissions));
 
-        foreach ($policies as $model => $policy) {
-            $policyMethods = get_class_methods(new $policy);
+        foreach ($all_permissions as $permission) {
+            list($action, $subject) = explode('.', $permission);
 
-            foreach ($policyMethods as $method) {
-                $p_method = strtolower($method);
-                $p_model = ucfirst(strtolower($model));
-
-                if ($user->can($p_method . '.' . $p_model)) {
-                    $abilities[] = [
-                        'action' => $p_method,
-                        'subject' => $p_model,
-                    ];
-                }
-            }
+            $abilities[] = [
+                'action' => $action,
+                'subject' => $subject,
+            ];
         }
 
         return $abilities;

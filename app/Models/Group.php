@@ -4,7 +4,6 @@ namespace App\Models;
 
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +20,10 @@ class Group extends Model
         'is_department',
     ];
 
+    protected $attributes = [
+        'is_department' => false,
+    ];
+
     protected $hidden = ['parent_id'];
 
     private static array $whiteListFilter = [
@@ -30,9 +33,21 @@ class Group extends Model
         'updated_at',
     ];
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')
+            ->with('children')
+            ->orderBy('is_department', 'desc');
+    }
+
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'groups_users')->using(GroupUser::class);
     }
 
     public function workflows(): HasMany
@@ -40,8 +55,8 @@ class Group extends Model
         return $this->hasMany(Workflow::class);
     }
 
-    public function userGroupPermission(): BelongsTo
+    public function userWorkflowApprovals(): HasMany
     {
-        return $this->belongsTo(UserGroupPermission::class);
+        return $this->hasMany(UserWorkflowApproval::class);
     }
 }

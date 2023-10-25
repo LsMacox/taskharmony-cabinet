@@ -11,7 +11,19 @@
 |
 */
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\User\WorkflowRequestController;
+use App\Http\Controllers\User\GroupController;
+use App\Http\Controllers\User\WorkflowController;
+use App\Http\Controllers\User\UserWorkflowApprovalController;
 
-Route::resource('workflow-requests', WorkflowRequestController::class)
-    ->except(['create', 'edit']);
+Route::prefix('groups')->name('groups.')->group(function () {
+    Route::get('', [GroupController::class, 'index'])->name('index');
+    Route::get('tree', [GroupController::class, 'tree'])->name('tree');
+    Route::get('permissions', [GroupController::class, 'permissions'])->name('tree');
+});
+
+Route::resource('workflows', WorkflowController::class)->except(['create', 'edit']);
+
+Route::prefix('user-workflow-approvals')->name('user.workflow.approval.')->group(function () {
+    Route::post('{workflow}/approve', [UserWorkflowApprovalController::class, 'approve'])->name('approve');
+    Route::post('{workflow}/reject', [UserWorkflowApprovalController::class, 'reject'])->name('reject');
+});

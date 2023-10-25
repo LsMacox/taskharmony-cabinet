@@ -4,8 +4,6 @@ namespace App\Policies;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-use Illuminate\Auth\Access\Response;
-
 class GroupPolicy
 {
     public function viewAny(Authenticatable $auth): bool

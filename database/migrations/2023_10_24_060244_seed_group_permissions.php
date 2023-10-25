@@ -23,7 +23,7 @@ return new class extends Migration
                 'update.UserGroup',
                 'delete.UserGroup',
             ],
-            ['Employee'],
+            ['Super Admin', 'Employee'],
         ],
     ];
 };

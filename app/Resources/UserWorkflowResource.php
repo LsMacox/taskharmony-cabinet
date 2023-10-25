@@ -2,7 +2,7 @@
 
 namespace App\Resources;
 
-class UserWorkflowRequestResource
+class UserWorkflowResource
 {
 
 }

@@ -18,7 +18,7 @@ class UserController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
-        $users = User::filter()->paginate();
+        $users = User::filter()->with('roles')->paginate();
 
         return UserResource::collection($users);
     }
@@ -26,6 +26,10 @@ class UserController extends Controller
     public function store(UserRequest $request): UserResource
     {
         $user = User::create($request->validated());
+
+        if ($request->filled('roles')) {
+            $user->assignRole($request->input('roles'));
+        }
 
         return new UserResource($user);
     }
@@ -38,6 +42,10 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user): UserResource
     {
         $user->update($request->validated());
+
+        if ($request->filled('roles')) {
+            $user->assignRole($request->input('roles'));
+        }
 
         return new UserResource($user);
     }

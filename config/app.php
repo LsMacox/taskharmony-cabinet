@@ -171,6 +171,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         \Spatie\Permission\PermissionServiceProvider::class,
         \eloquentFilter\ServiceProvider::class,
+        Hootlex\Moderation\ModerationServiceProvider::class,
         ]
     )->toArray(),
 

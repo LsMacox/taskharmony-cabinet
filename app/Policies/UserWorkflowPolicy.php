@@ -4,30 +4,30 @@ namespace App\Policies;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class UserWorkflowRequestPolicy
+class UserWorkflowPolicy
 {
     public function viewAny(Authenticatable $auth): bool
     {
-        return $auth->can('viewAny.UserWorkflowRequest');
+        return $auth->can('viewAny.UserWorkflow');
     }
 
     public function view(Authenticatable $auth): bool
     {
-        return $auth->can('view.UserWorkflowRequest');
+        return $auth->can('view.UserWorkflow');
     }
 
     public function create(Authenticatable $auth): bool
     {
-        return $auth->can('create.UserWorkflowRequest');
+        return $auth->can('create.UserWorkflow');
     }
 
     public function update(Authenticatable $auth): bool
     {
-        return $auth->can('update.UserWorkflowRequest');
+        return $auth->can('update.UserWorkflow');
     }
 
     public function delete(Authenticatable $auth): bool
     {
-        return $auth->can('delete.UserWorkflowRequest');
+        return $auth->can('delete.UserWorkflow');
     }
 }

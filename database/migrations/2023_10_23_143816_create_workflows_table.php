@@ -16,9 +16,14 @@ return new class extends Migration
                 $table->id();
                 $table->string('name');
                 $table->foreignId('group_id')->nullable();
-                $table->string('status'); // rejected, approved, returned
+                $table->text('state'); // approved, rejected, returned
+                $table->tinyInteger('status'); // moderation
+                $table->dateTime('moderated_at')->nullable();
+                $table->unsignedBigInteger('moderated_by')->nullable();
                 $table->json('approve_sequence')->nullable(); // [{group_id: 1}, {user_id: 2}]
                 $table->timestamps();
+
+                $table->foreign('moderated_by')->on('users')->references('id');
             }
         );
     }

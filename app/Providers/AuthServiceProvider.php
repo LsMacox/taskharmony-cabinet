@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use App\Policies\UserGroupPolicy;
-use App\Policies\UserWorkflowRequestPolicy;
+use App\Policies\UserWorkflowPolicy;
 use App\Resources\UserGroupResource;
-use App\Resources\UserWorkflowRequestResource;
+use App\Resources\UserWorkflowResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -18,8 +18,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        UserWorkflowRequestResource::class => UserWorkflowRequestPolicy::class,
         UserGroupResource::class => UserGroupPolicy::class,
+        UserWorkflowResource::class => UserWorkflowPolicy::class,
     ];
 
     /**

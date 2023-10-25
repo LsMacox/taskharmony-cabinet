@@ -16,10 +16,12 @@ class UserRequest extends FormRequest
         $rules = [
             'name' => ['nullable', 'string', 'max:255'],
             'password' => ['string', 'max:255'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['string', 'exists:roles,name'],
         ];
 
         if ($this->method() === 'POST') {
-            $rules['email'][] = ['required', 'email'];
+            $rules['email'] = ['required', 'email', 'unique:users,email'];
         }
 
         return $rules;

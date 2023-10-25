@@ -15,10 +15,12 @@ return new class extends Migration
             'groups', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
-                $table->text('description');
-                $table->unsignedBigInteger('parent_id');
+                $table->text('description')->nullable();
+                $table->unsignedBigInteger('parent_id')->nullable();
                 $table->boolean('is_department');
                 $table->timestamps();
+
+                $table->index('parent_id');
             }
         );
     }
