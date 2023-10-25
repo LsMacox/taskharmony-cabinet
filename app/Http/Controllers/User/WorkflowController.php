@@ -65,21 +65,13 @@ class WorkflowController extends Controller
         return response()->noContent();
     }
 
-    public function getApprovalsByApprovalSequence($workflow): Response
+    public function getApprovalsCount($workflow): JsonResponse
     {
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
 
-        $allAsGroupsIds = $this->repository->getAllGroupIdsFromApprovalSequence($workflow);
+        $counts = $this->repository->getCounts($workflow);
 
-        $userCount = UserWorkflowApproval::where('workflow_id')->whereNull('group_id')->count();
-
-        $groupCountList = UserWorkflowApproval::where('workflow_id')
-            ->whereNotNull('group_id')
-            ->with('group')
-            ->get()
-            ->groupBy('group.name');
-        dd($groupCountList);
-        return response()->json();
+        return response()->json($counts);
     }
 
     protected function checkUserGroupPermission(int $groupId): bool

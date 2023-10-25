@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Policies\UserArchivePolicy;
 use App\Policies\UserGroupPolicy;
 use App\Policies\UserWorkflowPolicy;
+use App\Resources\UserArchiveResource;
 use App\Resources\UserGroupResource;
 use App\Resources\UserWorkflowResource;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        UserArchiveResource::class => UserArchivePolicy::class,
         UserGroupResource::class => UserGroupPolicy::class,
         UserWorkflowResource::class => UserWorkflowPolicy::class,
     ];

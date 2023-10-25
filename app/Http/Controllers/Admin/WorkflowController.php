@@ -68,36 +68,13 @@ class WorkflowController extends Controller
         return response()->noContent();
     }
 
-    public function getApprovalsCount(Workflow $workflow): JsonResponse
+    public function getApprovalsCount($workflow): JsonResponse
     {
-        $allAsGroupsIds = $this->repository->getAllGroupIdsFromApprovalSequence($workflow);
+        $workflow = Workflow::withAnyStatus()->findOrFail($workflow);
 
-        $userWorkflowGroups = UserWorkflowApproval::with('group')
-            ->where('workflow_id', $workflow->id)
-            ->whereNotNull('group_id')
-            ->get();
+        $counts = $this->repository->getCounts($workflow);
 
-        $groupCountList = [];
-        $userCount = UserWorkflowApproval::where('workflow_id')->whereNull('group_id')->count();
-
-        foreach ($allAsGroupsIds as $groupsId) {
-            $userWorkflowGroup = $userWorkflowGroups->where('group_id', $groupsId)->first()->group;
-            $groupCountList[] = [
-                'id' => $groupsId,
-                'name' => $userWorkflowGroup->name,
-                'count' => $userWorkflowGroups->where('group_id', $groupsId)->count(),
-            ];
-        }
-
-        $totalGroupCount = array_reduce($groupCountList, function ($carry, $item) {
-            return $carry + $item['count'];
-        }, 0);
-
-        return response()->json([
-            'userCount' => $userCount,
-            'groupCountList' => $groupCountList,
-            'total' => $userCount + $totalGroupCount,
-        ]);
+        return response()->json($counts);
     }
 
     protected function prepareFill(Request $request): array

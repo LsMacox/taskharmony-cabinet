@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->job(WorkflowApprovedChecker::class)->hourly();
+         $schedule->command('workflow:checker')->hourly();
     }
 
     /**

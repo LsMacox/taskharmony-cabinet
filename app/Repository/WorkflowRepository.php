@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
 
 class WorkflowRepository
@@ -100,5 +101,40 @@ class WorkflowRepository
         }
 
         return $allAsGroupsIds->unique();
+    }
+
+    public function getCounts(Workflow $workflow): array
+    {
+        $allAsGroupsIds = $this->getAllGroupIdsFromApprovalSequence($workflow);
+
+        $userWorkflowGroups = UserWorkflowApproval::with('group')
+            ->where('workflow_id', $workflow->id)
+            ->whereNotNull('group_id')
+            ->where('is_approve', true)
+            ->get();
+
+        $groupCountList = [];
+        $userCount = UserWorkflowApproval::where('workflow_id', $workflow->id)
+            ->whereNull('group_id')
+            ->where('is_approve', true)
+            ->count();
+
+        foreach ($allAsGroupsIds as $groupsId) {
+            $group = $userWorkflowGroups->where('group_id', $groupsId)->first()?->group;
+
+            if ($group) {
+                $groupCountList[] = [
+                    'id' => $groupsId,
+                    'name' => $group->name,
+                    'count' => $userWorkflowGroups->where('group_id', $groupsId)->count(),
+                ];
+            }
+        }
+
+        $groupCount = array_reduce($groupCountList, function ($carry, $item) {
+            return $carry + $item['count'];
+        }, 0);
+
+        return compact('groupCountList', 'userCount', 'groupCount');
     }
 }
