@@ -56,9 +56,13 @@ class WorkflowController extends Controller
         return new WorkflowResource($workflow);
     }
 
-    public function destroy($workflow): Response
+    public function destroy($workflow): JsonResponse|Response
     {
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
+
+        if (!$this->checkUserGroupPermission($workflow->group_id)) {
+            return response()->json(['error' => 'You do not have permission to update in this group.'], 403);
+        }
 
         $workflow->delete();
 

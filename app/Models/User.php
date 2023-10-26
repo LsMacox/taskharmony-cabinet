@@ -31,7 +31,10 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    private static array $whiteListFilter = ['*'];
+    private static array $whiteListFilter = [
+        '*',
+        'roles.name',
+    ];
 
     public function groups(): BelongsToMany
     {

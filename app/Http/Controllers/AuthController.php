@@ -32,9 +32,12 @@ class AuthController extends Controller
             $tokenResult = $user->createToken('Personal Access Token');
             $token = $tokenResult->plainTextToken;
 
+            $user->load('roles');
+
             return response()->json(
                 [
                     'message' => 'Successfully created user!',
+                    'user' => $user,
                     'userAbilityRules' => $this->getUserAbilities($user),
                     'accessToken' => $token,
                 ],
@@ -69,9 +72,12 @@ class AuthController extends Controller
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->plainTextToken;
 
+        $user->load('roles');
+
         return response()->json(
             [
                 'accessToken' => $token,
+                'user' => $user,
                 'userAbilityRules' => $this->getUserAbilities($user),
                 'token_type' => 'Bearer',
             ]
