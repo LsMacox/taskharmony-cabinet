@@ -33,6 +33,7 @@ class AuthController extends Controller
             $token = $tokenResult->plainTextToken;
 
             $user->load('roles');
+            $user->assignRole('Employee');
 
             return response()->json(
                 [
