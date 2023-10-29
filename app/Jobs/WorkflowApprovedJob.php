@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Notification;
 use App\Models\States\WorkflowStatus\Approved;
 use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
@@ -24,6 +25,14 @@ class WorkflowApprovedJob implements ShouldQueue, ShouldBeUnique
     public function handle(): void
     {
         $allAsGroupsIds = $this->repository->getAllGroupIdsFromApprovalSequence($this->workflow);
+        $allAsGroupUserIds = collect();
+
+        foreach ($allAsGroupsIds as $groupsId) {
+            $allAsGroupUserIds->push($this->repository->getAllUserIdsForGroup($groupsId));
+        }
+
+        $allAsGroupUserIds = $allAsGroupUserIds->unique();
+
         $asUserIds = collect($this->workflow->approve_sequence)->pluck('user_id');
 
         $groupCountList = $this->countApprovedGroups($allAsGroupsIds);
@@ -31,6 +40,14 @@ class WorkflowApprovedJob implements ShouldQueue, ShouldBeUnique
 
         if ($groupCountList >= $allAsGroupsIds->count() && $userCount >= $asUserIds->count()) {
             $this->workflow->state->transitionTo(Approved::class);
+
+            foreach ($allAsGroupUserIds->merge($asUserIds) as $userId) {
+                Notification::create([
+                    'name' => 'Workflow has been approved!',
+                    'description' => 'Workflow "' . $this->workflow->name . ' (' . $this->workflow->id .')" has been approved!',
+                    'user_id' => $userId,
+                ]);
+            }
         }
     }
 
