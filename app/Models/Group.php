@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ModelFilters\GroupExcludeChildrenOf;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Group extends Model
 {
-    use HasFactory, Notifiable, Filterable;
+    use HasFactory, Notifiable, Filterable, GroupExcludeChildrenOf;
 
     protected $fillable = [
         'name',
@@ -28,6 +29,8 @@ class Group extends Model
 
     private static array $whiteListFilter = [
         'name',
+        'exclude_children_of',
+        'description',
         'is_department',
         'created_at',
         'updated_at',

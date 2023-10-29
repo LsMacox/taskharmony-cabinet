@@ -8,6 +8,7 @@ use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
 use App\Repository\WorkflowRepository;
 use App\Resources\UserWorkflowResource;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use App\Http\Requests\User\WorkflowRequest;
@@ -20,11 +21,13 @@ class WorkflowController extends Controller
         $this->authorizeResource(UserWorkflowResource::class);
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
+        $perPage = $request->input('perpage', 15);
         $workflows = $this->repository->getUserWorkflowBuilder(auth()->user())
+            ->ignoreRequest(['perpage'])
             ->filter()
-            ->paginate();
+            ->paginate($perPage);
 
         return WorkflowResource::collection($workflows);
     }

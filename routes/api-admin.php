@@ -22,8 +22,8 @@ Route::resource('users', UserController::class)
 Route::name('groups.')->prefix('groups')->group(function () {
     Route::get('tree', [GroupController::class, 'tree'])->name('tree');
 
-    Route::post('get-attached-users/{group}', [GroupController::class, 'getAttachedUsers'])
-        ->name('get-attached-user');
+    Route::get('{group}/attached-users', [GroupController::class, 'getAttachedUsers'])
+        ->name('attached-user');
 });
 
 Route::name('users.groups.')->group(function () {
@@ -33,10 +33,10 @@ Route::name('users.groups.')->group(function () {
         ->name('tree');
     Route::post('users/{user}/groups/{group}/update-group-permissions', [UserGroupController::class, 'updateGroupPermission'])
         ->name('update-group-permission');
-    Route::post('users/{user}/groups/{group}/attach-group', [UserGroupController::class, 'attachGroup'])
-        ->name('attach-group');
-    Route::post('users/{user}/groups/{group}/detach-group', [UserGroupController::class, 'detachGroup'])
-        ->name('detach-group');
+    Route::get('users/{user}/groups/{group}/group-permissions', [UserGroupController::class, 'getGroupPermission'])
+        ->name('group-permission');
+    Route::post('users/groups/{group}/sync-users', [UserGroupController::class, 'syncUsers'])
+        ->name('sync-users');
 });
 
 Route::get('workflows/{workflow}/approvals-count', [WorkflowController::class, 'getApprovalsCount'])

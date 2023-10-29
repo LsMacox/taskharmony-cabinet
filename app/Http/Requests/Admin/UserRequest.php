@@ -22,6 +22,8 @@ class UserRequest extends FormRequest
 
         if ($this->method() === 'POST') {
             $rules['email'] = ['required', 'email', 'unique:users,email'];
+            $rules['password'][] = 'required';
+            $rules['roles'][] = 'required';
         }
 
         return $rules;

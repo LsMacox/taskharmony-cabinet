@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkflowResource;
 use App\Models\States\WorkflowStatus\WorkflowStatusState;
-use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
 use App\Repository\WorkflowRepository;
 use Illuminate\Http\Request;
@@ -21,11 +20,13 @@ class WorkflowController extends Controller
         $this->authorizeResource(Workflow::class);
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
+        $perPage = $request->input('perpage', 15);
         $workflows = Workflow::withAnyStatus()
+            ->ignoreRequest(['perpage'])
             ->filter()
-            ->paginate();
+            ->paginate($perPage);
 
         return WorkflowResource::collection($workflows);
     }

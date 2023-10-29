@@ -8,6 +8,7 @@ use App\Http\Resources\GroupResource;
 use App\Http\Resources\GroupTreeResource;
 use App\Http\Resources\UserResource;
 use App\Models\Group;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -18,9 +19,12 @@ class GroupController extends Controller
         $this->authorizeResource(Group::class);
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $groups = Group::filter()->paginate();
+        $perPage = $request->input('perpage', 15);
+        $groups = Group::ignoreRequest(['perpage'])
+            ->filter()
+            ->paginate($perPage);
 
         return GroupResource::collection($groups);
     }

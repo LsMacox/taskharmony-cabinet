@@ -3,22 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\GroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\GroupTreeResource;
-use App\Http\Resources\UserResource;
 use App\Models\Group;
 use App\Models\GroupUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
 class UserGroupController extends Controller
 {
-    public function index(User $user): AnonymousResourceCollection
+    public function index(User $user, Request $request): AnonymousResourceCollection
     {
         $this->authorize('view', [Group::class]);
 
@@ -62,21 +59,27 @@ class UserGroupController extends Controller
         return response()->json(['Pivot table entry successfully updated.']);
     }
 
-    public function attachGroup(User $user, Group $group): JsonResponse
+    public function getGroupPermission(User $user, Group $group): JsonResponse
+    {
+        $this->authorize('view', [Group::class]);
+
+        $group = $user->groups()->withPivot('permissions')->findOrFail($group->id);
+
+        return response()->json([
+            'permissions' => $group->pivot->permissions,
+        ]);
+    }
+
+    public function syncUsers(Request $request, Group $group): JsonResponse
     {
         $this->authorize('create', [Group::class]);
 
-        $user->groups()->syncWithoutDetaching([$group->id]);
+        $request->validate([
+            'user_ids' => 'nullable|exists:users,id',
+        ]);
+
+        $group->users()->sync($request->input('user_ids', []));
 
         return response()->json(['message' => 'User attached to group successfully']);
-    }
-
-    public function detachGroup(User $user, Group $group): JsonResponse
-    {
-        $this->authorize('delete', [Group::class]);
-
-        $user->groups()->detach($group->id);
-
-        return response()->json(['message' => 'User detached from group successfully']);
     }
 }

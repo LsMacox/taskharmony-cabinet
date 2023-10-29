@@ -18,9 +18,9 @@ class GroupResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'parent_name' => $this->parent?->name,
+            'parent_id' => $this->parent_id,
             'description' => $this->description,
             'is_department' => (bool) $this->is_department,
-            'approves_count' => 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

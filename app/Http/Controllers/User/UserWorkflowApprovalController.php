@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Group;
 use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
 use App\Repository\WorkflowRepository;
