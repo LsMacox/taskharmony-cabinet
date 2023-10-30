@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\ModelFilters\StatusesFilter;
+use App\ModelFilters\WorkflowStatusesFilter;
 use App\Models\States\WorkflowStatus\WorkflowStatusState;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Hootlex\Moderation\Moderatable;
@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Workflow extends Model
 {
-    use HasFactory, Notifiable, Filterable, Moderatable, StatusesFilter;
+    use HasFactory, Notifiable, Filterable, Moderatable, WorkflowStatusesFilter;
 
     const MAP_STRING_STATUSES = [
         'approved' => Status::APPROVED,
@@ -43,6 +43,7 @@ class Workflow extends Model
     private static array $whiteListFilter = [
         'name',
         'state',
+        'group.name',
         'moderated_at',
         'moderated_by',
         'group_id',

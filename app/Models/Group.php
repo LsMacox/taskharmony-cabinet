@@ -28,8 +28,8 @@ class Group extends Model
     protected $hidden = ['parent_id'];
 
     private static array $whiteListFilter = [
+        'id',
         'name',
-        'exclude_children_of',
         'description',
         'is_department',
         'created_at',

@@ -5,7 +5,7 @@ namespace App\ModelFilters;
 use App\Models\Workflow;
 use Illuminate\Database\Eloquent\Builder;
 
-trait StatusesFilter
+trait WorkflowStatusesFilter
 {
     public function filterCustomStatus(Builder $builder, $value)
     {

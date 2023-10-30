@@ -33,7 +33,6 @@ class User extends Authenticatable
 
     private static array $whiteListFilter = [
         '*',
-        'exclude_from_groups',
         'roles.name',
     ];
 

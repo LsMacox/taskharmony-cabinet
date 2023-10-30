@@ -20,6 +20,7 @@ class WorkflowResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'group_id' => $this->group_id,
+            'group_name' => $this->group->name,
             'state' => $this->state,
             'approve_sequence' => $this->getApproveSequence(),
             'created_at' => $this->created_at,
