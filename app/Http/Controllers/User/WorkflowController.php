@@ -4,6 +4,8 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkflowResource;
+use App\Http\Resources\WorkflowShowResource;
+use App\Jobs\ApprovalCleanJob;
 use App\Models\UserWorkflowApproval;
 use App\Models\Workflow;
 use App\Repository\WorkflowRepository;
@@ -18,11 +20,12 @@ class WorkflowController extends Controller
 {
     public function __construct(public WorkflowRepository $repository)
     {
-        $this->authorizeResource(UserWorkflowResource::class);
     }
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', [UserWorkflowResource::class]);
+
         $perPage = $request->input('perpage', 15);
         $workflows = $this->repository->getUserWorkflowBuilder(auth()->user())
             ->ignoreRequest(['perpage'])
@@ -34,6 +37,8 @@ class WorkflowController extends Controller
 
     public function store(WorkflowRequest $request): JsonResponse|WorkflowResource
     {
+        $this->authorize('create', [UserWorkflowResource::class]);
+
         $workflow = Workflow::create($request->validated());
 
         return new WorkflowResource($workflow);
@@ -41,6 +46,8 @@ class WorkflowController extends Controller
 
     public function update(WorkflowRequest $request, $workflow): JsonResponse|WorkflowResource
     {
+        $this->authorize('update', [UserWorkflowResource::class]);
+
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
 
         if (!$this->checkUserGroupPermission($workflow->group_id)) {
@@ -49,18 +56,24 @@ class WorkflowController extends Controller
 
         $workflow->update($request->validated());
 
+        ApprovalCleanJob::dispatch($workflow);
+
         return new WorkflowResource($workflow);
     }
 
-    public function show($workflow): WorkflowResource
+    public function show($workflow): WorkflowShowResource
     {
+        $this->authorize('view', [UserWorkflowResource::class]);
+
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
 
-        return new WorkflowResource($workflow);
+        return new WorkflowShowResource($workflow);
     }
 
     public function destroy($workflow): JsonResponse|Response
     {
+        $this->authorize('delete', [UserWorkflowResource::class]);
+
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
 
         if (!$this->checkUserGroupPermission($workflow->group_id)) {
@@ -74,6 +87,8 @@ class WorkflowController extends Controller
 
     public function getApprovalsCount($workflow): JsonResponse
     {
+        $this->authorize('view', [UserWorkflowResource::class]);
+
         $workflow = $this->repository->getUserWorkflowBuilder(auth()->user())->findOrFail($workflow);
 
         $counts = $this->repository->getCounts($workflow);

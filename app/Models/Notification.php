@@ -17,7 +17,17 @@ class Notification extends Model
     use HasFactory, Notifiable, Filterable;
 
     protected $fillable = [
-        'name',
+        'title',
         'description',
+        'user_id',
+        'mark',
+    ];
+
+    protected $attributes = [
+        'mark' => false,
+    ];
+
+    private static array $whiteListFilter = [
+        'mark',
     ];
 }

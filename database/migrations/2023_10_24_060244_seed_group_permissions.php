@@ -17,13 +17,10 @@ return new class extends Migration
         ],
         [
             [
-                'viewAny.UserGroup',
-                'view.UserGroup',
-                'create.UserGroup',
-                'update.UserGroup',
-                'delete.UserGroup',
+                'viewAny.Group',
+                'view.Group',
             ],
-            ['Super Admin', 'Employee'],
+            ['Employee'],
         ],
     ];
 };

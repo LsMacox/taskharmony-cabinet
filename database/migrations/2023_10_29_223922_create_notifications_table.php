@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->string('title');
             $table->text('description')->nullable();
+            $table->boolean('mark');
             $table->timestamps();
         });
     }

@@ -19,11 +19,6 @@ class WorkflowRequest extends FormRequest
     {
     }
 
-    public function authorize(): bool
-    {
-        return auth()->guard()->check();
-    }
-
     public function rules(): array
     {
         $rules = [

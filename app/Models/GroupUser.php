@@ -13,11 +13,9 @@ class GroupUser extends Pivot
     ];
 
     const PERMISSION_CREATE = 'create';
-    const PERMISSION_VIEW = 'view';
 
     const PERMISSIONS = [
         self::PERMISSION_CREATE,
-        self::PERMISSION_VIEW,
     ];
 
     protected $attributes = [

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
@@ -9,6 +9,7 @@ use App\Jobs\ApprovalCleanJob;
 use App\Models\Group;
 use App\Models\GroupUser;
 use App\Models\User;
+use App\Resources\UserGroupResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\JsonResponse;
@@ -16,40 +17,17 @@ use Illuminate\Validation\Rule;
 
 class UserGroupController extends Controller
 {
-    public function index(User $user, Request $request): AnonymousResourceCollection
+    public function updateGroupPermission(Request $request, int $group)
     {
-        $this->authorize('view', [Group::class]);
-
-        $groups = $user->groups()->filter()->get();
-
-        return GroupResource::collection($groups);
-    }
-
-    public function tree(User $user): AnonymousResourceCollection
-    {
-        $this->authorize('view', [Group::class]);
-
-        $rootGroups = $user->groups()
-            ->filter()
-            ->with('children')
-            ->whereNull('parent_id')
-            ->orderBy('is_department', 'desc')
-            ->get();
-
-        return GroupTreeResource::collection($rootGroups);
-    }
-
-    public function updateGroupPermission(Request $request, User $user, Group $group)
-    {
-        $this->authorize('create', [Group::class]);
+        $this->authorize('create', [UserGroupResource::class]);
 
         $this->validate($request, [
             'permissions' => ['present', 'nullable', 'array'],
             'permissions.*' => ['nullable', 'string', Rule::in(GroupUser::PERMISSIONS)],
         ]);
 
-        $isUpdated = $user->groups()
-            ->updateExistingPivot($group->id, ['permissions' => $request->input('permissions')]);
+        $isUpdated = auth()->user()->groups()
+            ->updateExistingPivot($group, ['permissions' => $request->input('permissions')]);
 
         if (!$isUpdated) {
             return response()
@@ -60,20 +38,22 @@ class UserGroupController extends Controller
         return response()->json(['Pivot table entry successfully updated.']);
     }
 
-    public function getGroupPermission(User $user, Group $group): JsonResponse
+    public function getGroupPermission(int $group): JsonResponse
     {
-        $this->authorize('view', [Group::class]);
+        $this->authorize('create', [UserGroupResource::class]);
 
-        $group = $user->groups()->withPivot('permissions')->findOrFail($group->id);
+        $group = auth()->user()->groups()->withPivot('permissions')->findOrFail($group);
 
         return response()->json([
             'permissions' => $group->pivot->permissions,
         ]);
     }
 
-    public function syncUsers(Request $request, Group $group): JsonResponse
+    public function syncUsers(Request $request, int $group): JsonResponse
     {
-        $this->authorize('create', [Group::class]);
+        $this->authorize('create', [UserGroupResource::class]);
+
+        $group = auth()->user()->groups()->findOrFail($group);
 
         $request->validate([
             'user_ids' => 'nullable|exists:users,id',

@@ -20,6 +20,8 @@ abstract class WorkflowStatusState extends State
             ->allowTransition(InProgress::class, Approved::class)
             ->allowTransition(InProgress::class, Rejected::class)
             ->allowTransition(Rejected::class, Returned::class)
-            ->allowTransition(Returned::class, Approved::class);
+            ->allowTransition(Returned::class, Approved::class)
+            ->allowTransition(Approved::class, Returned::class)
+            ->allowTransition(Returned::class, Rejected::class);
     }
 }

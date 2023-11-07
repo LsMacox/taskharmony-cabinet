@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\ModelFilters\GroupExcludeChildrenOf;
+use App\ModelFilters\GroupChildrenOfFilter;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Group extends Model
 {
-    use HasFactory, Notifiable, Filterable, GroupExcludeChildrenOf;
+    use HasFactory, Notifiable, Filterable, GroupChildrenOfFilter;
 
     protected $fillable = [
         'name',

@@ -61,7 +61,7 @@ class WorkflowRepository
         if (!empty($workflowIds)) {
              return Workflow::whereIn('id', $workflowIds);
         } else {
-            abort(404);
+            return Workflow::where('id', null);
         }
     }
 
@@ -88,53 +88,81 @@ class WorkflowRepository
         return $allUserGroupIds->unique();
     }
 
-    public function getAllGroupIdsFromApprovalSequence($workflow)
+    public function getAllGroupIdsFromApprovalSequence($workflow, bool $is_group = false)
     {
-        $asGroupIds = collect($workflow->approve_sequence)->pluck('group_id');
-        $asGroups = Group::whereIn('id', $asGroupIds)->get();
+        $asGroupIds = collect($workflow->approve_sequence)->pluck('group_id')
+            ->filter()
+            ->values()
+            ->all();
+
+        $asGroupsBuilder = Group::select('id', 'name')
+            ->whereIn('id', $asGroupIds);
+
+        if ($asGroupIds) {
+            $asGroupsBuilder->orderByRaw('FIELD(id,' . implode(',', $asGroupIds) . ')');
+        }
+
+        $asGroups = $asGroupsBuilder->get();
 
         $allAsGroupsIds = collect()->merge($asGroupIds);
 
-        foreach ($asGroups as $group) {
-            $groups = $this->getFlatListOfSubgroups($group)->pluck('id');
-            $allAsGroupsIds = $allAsGroupsIds->merge($groups);
+        if ($is_group) {
+            $allAsGroupsIds = $asGroups->mapWithKeys(function ($group) {
+                $childIds = $this->getFlatListOfSubgroups($group)->pluck('id');
+                return [$group->id => $childIds];
+            });
+        } else {
+            foreach ($asGroups as $group) {
+                $groups = $this->getFlatListOfSubgroups($group)->pluck('id');
+                $allAsGroupsIds = $allAsGroupsIds->merge($groups);
+            }
         }
 
-        return $allAsGroupsIds->unique();
+        return $allAsGroupsIds->unique()->filter();
     }
 
     public function getCounts(Workflow $workflow): array
     {
-        $allAsGroupsIds = $this->getAllGroupIdsFromApprovalSequence($workflow);
+        $allGroupIds = $this->getAllGroupIdsFromApprovalSequence($workflow, true);
 
-        $userWorkflowGroups = UserWorkflowApproval::with('group')
-            ->where('workflow_id', $workflow->id)
-            ->whereNotNull('group_id')
+        $groups = $allGroupIds->mapWithKeys(function ($childIds, $key) {
+            $groups = Group::whereIn('id', $childIds->merge($key))->get()->load('users');
+
+            return [$key => $groups];
+        });
+
+        $totalCount = $groups->pluck('users')->flatten()->count();
+
+        $userWorkflowApprovals = UserWorkflowApproval::where('workflow_id', $workflow->id)
             ->where('is_approve', true)
             ->get();
 
         $groupCountList = [];
-        $userCount = UserWorkflowApproval::where('workflow_id', $workflow->id)
-            ->whereNull('group_id')
-            ->where('is_approve', true)
-            ->count();
 
-        foreach ($allAsGroupsIds as $groupsId) {
-            $group = $userWorkflowGroups->where('group_id', $groupsId)->first()?->group;
+        foreach ($groups as $groupId => $childGroups) {
+            $mainGroup = Group::find($groupId);
+            $groupUsers = $childGroups->pluck('users')->flatten();
+            $approvedCount = $userWorkflowApprovals->whereIn('group_id', $childGroups->pluck('id'))
+                ->whereNotNull('user_id')
+                ->whereIn('user_id', $groupUsers->pluck('id'))
+                ->count();
 
-            if ($group) {
-                $groupCountList[] = [
-                    'id' => $groupsId,
-                    'name' => $group->name,
-                    'count' => $userWorkflowGroups->where('group_id', $groupsId)->count(),
-                ];
-            }
+            $groupCountList[] = [
+                'id' => $mainGroup->id,
+                'name' => $mainGroup->name,
+                'total_possible_approvals' => $groupUsers->count(),
+                'approved_count' => $approvedCount
+            ];
         }
 
-        $groupCount = array_reduce($groupCountList, function ($carry, $item) {
-            return $carry + $item['count'];
-        }, 0);
+        $groupApprovalsCount = collect($groupCountList)->sum('approved_count');
+        $individualUserCount = $userWorkflowApprovals->whereNull('group_id')->count();
 
-        return compact('groupCountList', 'userCount', 'groupCount');
+        return [
+            'group_count_list' => $groupCountList,
+            'individual_user_count' => $individualUserCount,
+            'group_approvals_count' => $groupApprovalsCount,
+            'total_count' => $totalCount
+        ];
     }
 }

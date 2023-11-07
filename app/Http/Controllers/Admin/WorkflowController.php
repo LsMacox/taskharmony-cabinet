@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkflowResource;
+use App\Http\Resources\WorkflowShowResource;
+use App\Jobs\ApprovalCleanJob;
 use App\Models\States\WorkflowStatus\WorkflowStatusState;
 use App\Models\Workflow;
 use App\Repository\WorkflowRepository;
@@ -17,11 +19,12 @@ class WorkflowController extends Controller
 {
     public function __construct(public WorkflowRepository $repository)
     {
-        $this->authorizeResource(Workflow::class);
     }
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', [Workflow::class]);
+
         $perPage = $request->input('perpage', 15);
         $workflows = Workflow::withAnyStatus()
             ->ignoreRequest(['perpage'])
@@ -33,6 +36,8 @@ class WorkflowController extends Controller
 
     public function store(WorkflowRequest $request): WorkflowResource
     {
+        $this->authorize('create', [Workflow::class]);
+
         $workflow = Workflow::create($this->prepareFill($request));
 
         $workflow->markApproved();
@@ -41,8 +46,10 @@ class WorkflowController extends Controller
         return new WorkflowResource($workflow);
     }
 
-    public function update(WorkflowRequest $request, $workflow): WorkflowResource
+    public function update(WorkflowRequest $request, int $workflow): WorkflowResource
     {
+        $this->authorize('update', [Workflow::class]);
+
         $workflow = Workflow::withAnyStatus()->findOrFail($workflow);
         $workflow->update($this->prepareFill($request));
 
@@ -50,18 +57,24 @@ class WorkflowController extends Controller
             $workflow->state->transitionTo(WorkflowStatusState::all()[$request->input('state')]);
         }
 
+        ApprovalCleanJob::dispatch($workflow);
+
         return new WorkflowResource($workflow);
     }
 
-    public function show($workflow): WorkflowResource
+    public function show(int $workflow): WorkflowShowResource
     {
+        $this->authorize('view', [Workflow::class]);
+
         $workflow = Workflow::withAnyStatus()->findOrFail($workflow);
 
-        return new WorkflowResource($workflow);
+        return new WorkflowShowResource($workflow);
     }
 
-    public function destroy($workflow): Response
+    public function destroy(int $workflow): Response
     {
+        $this->authorize('delete', [Workflow::class]);
+
         $workflow = Workflow::withAnyStatus()->findOrFail($workflow);
 
         $workflow->delete();
@@ -69,8 +82,10 @@ class WorkflowController extends Controller
         return response()->noContent();
     }
 
-    public function getApprovalsCount($workflow): JsonResponse
+    public function getApprovalsCount(int $workflow): JsonResponse
     {
+        $this->authorize('view', [Workflow::class]);
+
         $workflow = Workflow::withAnyStatus()->findOrFail($workflow);
 
         $counts = $this->repository->getCounts($workflow);

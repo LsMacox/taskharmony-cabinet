@@ -23,6 +23,9 @@ class GroupResource extends JsonResource
             'is_department' => (bool) $this->is_department,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'permissions' => $this->whenLoaded('users', function () {
+                return $this->users->pluck('pivot.permissions')->first();
+            }),
         ];
     }
 }

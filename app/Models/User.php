@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\ModelFilters\UsersExcludeFromGroupsFilter;
+use App\Models\FilterDetections\OrCondition;
+use App\Models\FilterDetections\WhereInCondition;
+use App\Models\FilterDetections\WhereLikeCondition;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, HasPermissions, Filterable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, HasPermissions, Filterable, UsersExcludeFromGroupsFilter;
 
     protected $fillable = [
         'name',
@@ -44,5 +48,14 @@ class User extends Authenticatable
     public function userWorkflowApprovals(): HasMany
     {
         return $this->hasMany(UserWorkflowApproval::class);
+    }
+
+    public function EloquentFilterCustomDetection(): array
+    {
+        return [
+            WhereLikeCondition::class,
+            WhereInCondition::class,
+            OrCondition::class,
+        ];
     }
 }

@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Policies\UserGroupPolicy;
+use App\Resources\UserGroupResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    const MANUAL_POLICIES = [
+        UserGroupResource::class => UserGroupPolicy::class,
+    ];
+
     public function register(Request $request): JsonResponse
     {
         $request->validate(
@@ -122,6 +130,33 @@ class AuthController extends Controller
             ];
         }
 
-        return $abilities;
+        return array_merge($abilities, $this->getManualUserAbilities($user));
+    }
+
+    protected function getManualUserAbilities(User $user): array
+    {
+        $results = [];
+
+        foreach (self::MANUAL_POLICIES as $resourceClass => $policyClass) {
+            $reflection = new \ReflectionClass($policyClass);
+
+            $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+
+            foreach ($methods as $method) {
+                $methodName = $method->name;
+                $check = Gate::forUser($user)->allows($methodName, $resourceClass);
+
+                $policyName = Str::before(class_basename($policyClass), 'Policy');
+
+                if ($check) {
+                    $results[] = [
+                        'action' => $methodName,
+                        'subject' => $policyName,
+                    ];
+                }
+            }
+        }
+
+        return $results;
     }
 }

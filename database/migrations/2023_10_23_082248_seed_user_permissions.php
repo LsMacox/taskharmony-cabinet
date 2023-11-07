@@ -15,12 +15,5 @@ return new class extends Migration
             ],
             ['Super Admin'],
         ],
-        [
-            [
-                'viewAny.User',
-                'view.User',
-            ],
-            ['Employee'],
-        ],
     ];
 };

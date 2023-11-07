@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Group;
 use App\Models\Notification;
 use App\Models\States\WorkflowStatus\Approved;
 use App\Models\UserWorkflowApproval;
@@ -14,36 +15,41 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class WorkflowApprovedJob implements ShouldQueue, ShouldBeUnique
+class WorkflowApproveJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public Workflow $workflow, public WorkflowRepository $repository)
+    public WorkflowRepository $repository;
+
+    public function __construct(public Workflow $workflow)
     {
+        $this->repository = app(WorkflowRepository::class);
     }
 
     public function handle(): void
     {
         $allAsGroupsIds = $this->repository->getAllGroupIdsFromApprovalSequence($this->workflow);
         $allAsGroupUserIds = collect();
+        $allAsGroups = Group::whereIn('id', $allAsGroupsIds)->get()->load('users');
 
         foreach ($allAsGroupsIds as $groupsId) {
-            $allAsGroupUserIds->push($this->repository->getAllUserIdsForGroup($groupsId));
+            $group = $allAsGroups->firstWhere('id', $groupsId);
+            $allAsGroupUserIds->push($this->repository->getAllUserIdsForGroup($group));
         }
 
         $allAsGroupUserIds = $allAsGroupUserIds->unique();
 
-        $asUserIds = collect($this->workflow->approve_sequence)->pluck('user_id');
+        $asUserIds = collect($this->workflow->approve_sequence)->pluck('user_id')->filter();
 
         $groupCountList = $this->countApprovedGroups($allAsGroupsIds);
         $userCount = $this->countApprovedUsers();
 
-        if ($groupCountList >= $allAsGroupsIds->count() && $userCount >= $asUserIds->count()) {
+        if ($groupCountList >= $allAsGroupsIds->count() - 1 && $userCount >= $asUserIds->count()) {
             $this->workflow->state->transitionTo(Approved::class);
 
-            foreach ($allAsGroupUserIds->merge($asUserIds) as $userId) {
+            foreach ($allAsGroupUserIds->merge($asUserIds)->flatten()->unique() as $userId) {
                 Notification::create([
-                    'name' => 'Workflow has been approved!',
+                    'title' => 'Workflow has been approved!',
                     'description' => 'Workflow "' . $this->workflow->name . ' (' . $this->workflow->id .')" has been approved!',
                     'user_id' => $userId,
                 ]);
@@ -51,7 +57,7 @@ class WorkflowApprovedJob implements ShouldQueue, ShouldBeUnique
         }
     }
 
-    private function countApprovedGroups($allAsGroupsIds)
+    private function countApprovedGroups($allAsGroupsIds): int
     {
         $userWorkflowGroups = UserWorkflowApproval::with('group')
             ->where('workflow_id', $this->workflow->id)

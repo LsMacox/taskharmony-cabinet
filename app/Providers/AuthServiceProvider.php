@@ -8,7 +8,6 @@ use App\Policies\UserWorkflowPolicy;
 use App\Resources\UserArchiveResource;
 use App\Resources\UserGroupResource;
 use App\Resources\UserWorkflowResource;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 
@@ -30,10 +29,10 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::before(
-            function ($user, $ability) {
-                return $user->hasRole('Super admin') ? true : null;
-            }
-        );
+//        Gate::before(
+//            function ($user, $ability) {
+//                return $user->hasRole('Super admin') ? true : null;
+//            }
+//        );
     }
 }
